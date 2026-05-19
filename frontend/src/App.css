@@ -1,0 +1,106 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   App-level styles — supplements the design system in index.css
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.header-status {
+  flex-shrink: 0;
+}
+
+/* ── Page section titles ───────────────────────────────────────────────────── */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.page-title h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.page-title .subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Section Divider ───────────────────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--space-xl) 0;
+}
+
+/* ── Panel Grid (3 columns for Vectorial/Graph pages) ──────────────────────── */
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+@media (max-width: 1200px) {
+  .panel-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Sub-tab bar (within pages) ────────────────────────────────────────────── */
+.sub-tabs {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.sub-tab {
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sub-tab:hover {
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+  background: var(--bg-glass-hover);
+}
+
+.sub-tab.active {
+  border-color: var(--accent-indigo);
+  color: var(--accent-indigo);
+  background: rgba(129,140,248,0.1);
+}
+
+/* ── Visualization placeholder ─────────────────────────────────────────────── */
+.viz-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--bg-glass);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  gap: var(--space-sm);
+}
+
+.viz-placeholder-icon {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}

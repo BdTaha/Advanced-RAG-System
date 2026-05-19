@@ -1,0 +1,27 @@
+# IDEs and Editors
+.idea/
+.vscode/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets and Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+
+# Local Data and Vector Indexes (Heavy files)
+backend/data/cached_*.json
+backend/data/cached_*.npy
+backend/data/faiss_index/
+backend/data/embedding_eval_cache.json
+backend/data/profiler_cache.json
+backend/data/q_table.json
+
+# If you want to hide the original text document too:
+backend/data/*.txt

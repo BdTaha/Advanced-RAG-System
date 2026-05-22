@@ -42,8 +42,14 @@ Large Language Models are powerful — but structurally flawed for high-stakes, 
 This project solves that problem with a **multi-paradigm Retrieval-Augmented Generation platform** that goes far beyond standard vector search. The architecture integrates three complementary retrieval paradigms within a single, unified system:
 
 - **Vector RAG** — semantic similarity search using dense embeddings and FAISS indexing.
+  <img width="1920" height="1080" alt="Vectorial RAG(Embedding) Page" src="https://github.com/user-attachments/assets/43d0692b-dc00-4b63-8e7c-f6e2186359c6" />
+
 - **Graph RAG** — structured entity-relationship traversal using a locally-built knowledge graph synced to Neo4j Aura.
+  <img width="1920" height="1080" alt="Graph Rag(NetworkX) Page" src="https://github.com/user-attachments/assets/167bfb82-0218-4a25-a178-5780942113bd" />
+
 - **Agentic RAG** — a Q-Learning agent that learns, from interaction rewards, which retrieval strategy to deploy for each query.
+  <img width="1920" height="1080" alt="Agentic Graph RAG Page" src="https://github.com/user-attachments/assets/75cc03a5-1c43-4d51-981d-f2d30fa2738e" />
+
 
 Rather than relying on static routing rules, the system features a **Q-Learning agent** acting as an intelligent meta-router. It extracts query features (semantic density, relational structure, length) and autonomously selects the optimal retrieval configuration — then continuously improves its policy through an epsilon-greedy exploration loop.
 

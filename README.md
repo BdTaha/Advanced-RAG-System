@@ -73,19 +73,19 @@ The platform is organized across four interconnected layers:
 └────────────┬────────────────────────────┬────────────────────┘
              │                            │
 ┌────────────▼──────────────┐  ┌──────────▼──────────────────┐
-│       Core AI Services    │  │     Agentic Routing Layer    │
-│  EmbeddingService         │  │  Q-Learning Agent            │
-│  ChunkingService          │  │  8-state ε-greedy policy     │
-│  RetrievalService         │  │  Reward function tuning      │
-│  LLMService (FLAN-T5)     │  │  Continuous policy update    │
+│       Core AI Services    │  │     Agentic Routing Layer   │
+│  EmbeddingService         │  │  Q-Learning Agent           │
+│  ChunkingService          │  │  8-state ε-greedy policy    │
+│  RetrievalService         │  │  Reward function tuning     │
+│  LLMService (FLAN-T5)     │  │  Continuous policy update   │
 │  GraphService             │  └─────────────────────────────┘
 │  PromptService            │
 └────────────┬──────────────┘
              │
 ┌────────────▼──────────────────────────────────────────────┐
-│                  Infrastructure Layer                      │
+│                  Infrastructure Layer                     │
 │  FAISS Vector Store · NetworkX Graph · Neo4j Aura (Bolt)  │
-└────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────┘
 ```
 
 ### 1. 📐 Vector RAG Pipeline

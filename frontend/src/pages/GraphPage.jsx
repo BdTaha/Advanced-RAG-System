@@ -20,13 +20,23 @@ export default function GraphPage() {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedComm, setSelectedComm] = useState(null);
   const fgRef = useRef();
+  const graphContainer = useRef();
+  const [graphWidth, setGraphWidth] = useState(600);
+  useEffect(() => {
+    if (!graphContainer.current) return;
+    const observer = new ResizeObserver(entries => setGraphWidth(entries[0].contentRect.width));
+    observer.observe(graphContainer.current);
+    return () => observer.disconnect();
+  }, [activeSection]);
+  useEffect(() => { loadCommunityGraph(); }, []);
 
   const buildGraph = async () => {
     setLoading(true);
-    setStatus('Construction du graphe avec flan-t5-base sur TOUS les chunks...');
+    setStatus('Construction du graphe de cooccurrence…');
     try {
-      const res = await graphAPI.build({ use_llm: true });
-      setStatus(`✅ ${res.data.nodes} nœuds, ${res.data.edges} arêtes — ${res.data.communities_detected} communautés — Neo4j: ${res.data.neo4j}`);
+      const res = await graphAPI.build({ use_llm: false });
+      setCommunities(null); setAnalytics(null); setNeo4jStatus(null);
+      setStatus(`✅ ${res.data.nodes} nœuds, ${res.data.edges} arêtes — ${res.data.communities_detected} communautés — Stockage: ${res.data.neo4j}`);
       await loadCommunityGraph();
     } catch (e) {
       setStatus(`❌ ${e.response?.data?.detail || e.message}`);
@@ -172,7 +182,7 @@ export default function GraphPage() {
                 </span>
               )}
             </div>
-            <div className="gp-force-container">
+            <div className="gp-force-container" ref={graphContainer}>
               {communityData?.nodes?.length > 0 ? (
                 <ForceGraph2D
                   ref={fgRef}
@@ -181,7 +191,7 @@ export default function GraphPage() {
                   linkCanvasObjectMode={() => 'replace'}
                   linkCanvasObject={linkCanvasObject}
                   nodeId="id"
-                  width={900}
+                  width={graphWidth}
                   height={500}
                   backgroundColor="rgba(0,0,0,0)"
                   onNodeHover={node => setHoveredNode(node?.id || null)}
@@ -331,7 +341,7 @@ export default function GraphPage() {
                   </div>
                   {neo4jStatus.sample_triples?.length > 0 && (
                     <div className="gp-triples">
-                      <h4 style={{ fontSize: '0.8rem', marginBottom: 8, color: 'var(--text-secondary)' }}>Sample Triples (Neo4j)</h4>
+                      <h4 style={{ fontSize: '0.8rem', marginBottom: 8, color: 'var(--text-secondary)' }}>Passage co-occurrences (D1)</h4>
                       {neo4jStatus.sample_triples.slice(0, 6).map((t, i) => (
                         <div key={i} className="gp-triple-row">
                           <span className="badge badge-indigo">{t.source}</span>
@@ -357,9 +367,10 @@ export default function GraphPage() {
               <div className="card-icon purple"><HiOutlineCode /></div>
               <h3>{t('graph.cypher_console')}</h3>
             </div>
-            <textarea className="input textarea gp-cypher-input"
+            <p className="workspace-detail">Four read-only graph presets are supported. Edges represent co-occurrence. Arbitrary Cypher and Neo4j are not part of this free edition.</p>
+            <textarea aria-label="Graph preset query" className="input textarea gp-cypher-input"
               value={cypherQuery} onChange={e => setCypherQuery(e.target.value)}
-              rows={3} placeholder="MATCH (n) RETURN n LIMIT 10" />
+              rows={3} placeholder="Choose one of the four read-only presets below" />
             <div className="gp-cypher-presets">
               <button className="btn btn-secondary btn-sm" onClick={() => setCypherQuery('MATCH (n:Concept) RETURN n.name, n.community, n.degree ORDER BY n.degree DESC LIMIT 20')}>{t('graph.top_nodes')}</button>
               <button className="btn btn-secondary btn-sm" onClick={() => setCypherQuery('MATCH (a:Concept)-[r]->(b:Concept) RETURN a.name, type(r), b.name LIMIT 20')}>{t('graph.relations_btn')}</button>

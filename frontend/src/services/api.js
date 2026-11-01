@@ -3,13 +3,28 @@
  */
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 0, // No timeout for heavy ML ops
+  timeout: 120000,
 });
+
+// Establish the HttpOnly workspace cookie once before parallel page requests.
+let ready;
+api.interceptors.request.use(async config => {
+  if (!ready) ready = axios.get(`${API_BASE}/api/session`, { withCredentials: true }).catch(error => { ready = null; throw error; });
+  await ready;
+  config.withCredentials = true;
+  return config;
+});
+
+export const workspaceAPI = {
+  info: () => api.get('/api/session'),
+  text: text => api.post('/api/vectorial/upload', { text }),
+  delete: () => api.delete('/api/session'),
+};
 
 // ── Vectorial RAG ─────────────────────────────────────────────────────────────
 export const vectorialAPI = {

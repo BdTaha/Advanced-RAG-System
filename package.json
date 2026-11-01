@@ -1,0 +1,17 @@
+{
+  "name": "advanced-rag-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "test": "node --test tests/*.test.js",
+    "db:local": "wrangler d1 migrations apply advanced-rag-db --local",
+    "db:remote": "wrangler d1 migrations apply advanced-rag-db --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0",
+    "miniflare": "^4.0.0"
+  }
+}

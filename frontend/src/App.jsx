@@ -4,17 +4,20 @@ import QueryPage from './pages/QueryPage';
 import VectorialPage from './pages/VectorialPage';
 import GraphPage from './pages/GraphPage';
 import AgenticPage from './pages/AgenticPage';
+import Workspace from './Workspace';
 import { HiOutlineSearch, HiOutlineCube, HiOutlineShare, HiOutlineLightningBolt, HiTranslate } from 'react-icons/hi';
 import { useLanguage } from './LanguageContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('query');
+  const [workspaceVersion, setWorkspaceVersion] = useState(0);
+  const [online, setOnline] = useState(false);
   const { language, toggleLanguage, t } = useLanguage();
 
   const TABS = [
     { id: 'query',     label: t('app.query'),           icon: <HiOutlineSearch />,        badge: null },
-    { id: 'vectorial', label: t('app.vectorial'),    icon: <HiOutlineCube />,          badge: '7+5' },
-    { id: 'graph',     label: t('app.graph'),        icon: <HiOutlineShare />,         badge: 'Neo4j' },
+    { id: 'vectorial', label: t('app.vectorial'),    icon: <HiOutlineCube />,          badge: 'RAG' },
+    { id: 'graph',     label: t('app.graph'),        icon: <HiOutlineShare />,         badge: 'D1' },
     { id: 'agentic',   label: t('app.agentic'), icon: <HiOutlineLightningBolt />, badge: 'RL' },
   ];
 
@@ -59,14 +62,15 @@ export default function App() {
             <button className="btn-icon" onClick={toggleLanguage} title="Toggle Language" style={{ padding: '6px', background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <HiTranslate size={18} style={{ marginRight: '4px' }} /> {language.toUpperCase()}
             </button>
-            <span className="badge badge-emerald">● {t('app.online')}</span>
+            <span className={`badge ${online ? 'badge-emerald' : 'badge-amber'}`}>● {online ? t('app.online') : (language === 'fr' ? 'Connexion…' : 'Connecting…')}</span>
           </div>
         </div>
       </header>
 
       {/* ── Page Content ────────────────────────────────────────────────── */}
       <main className="main-content">
-        <div className="page-enter" key={activeTab}>
+        <Workspace onChange={() => setWorkspaceVersion(v => v + 1)} onStatus={setOnline} />
+        <div className="page-enter" key={`${activeTab}-${workspaceVersion}`}>
           {renderPage()}
         </div>
       </main>

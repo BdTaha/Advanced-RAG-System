@@ -1,74 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { HiOutlineScissors, HiOutlineChip, HiOutlineSearch, HiOutlinePlay, HiOutlineRefresh } from 'react-icons/hi';
 import { vectorialAPI } from '../services/api';
 import { useLanguage } from '../LanguageContext';
 import './VectorialPage.css';
 
 const CHUNKING_METHODS = [
-  { id: 'auto',      name: 'Auto-Sélection (Profiler)', icon: '✨' },
+  { id: 'auto',      name: 'Auto (TF-IDF / recursive)', icon: '✨' },
   { id: 'fixed',     name: 'Taille Fixe',          icon: '📐' },
   { id: 'sentence',  name: 'Par Phrases',           icon: '📝' },
   { id: 'paragraph', name: 'Par Paragraphes',       icon: '📄' },
-  { id: 'semantic',  name: 'Similarité Sémantique', icon: '🧠' },
   { id: 'sliding',   name: 'Fenêtre Glissante',     icon: '🪟' },
   { id: 'recursive', name: 'Récursif',              icon: '🔄' },
   { id: 'markdown',  name: 'Structurel',            icon: '📑' },
 ];
 
 const EMBEDDING_MODELS = [
-  { id: 'auto',       name: 'Auto-Sélection (Profiler)', color: 'slate' },
+  { id: 'auto',       name: 'Auto (TF-IDF / recursive)', color: 'slate' },
+  { id: 'cloudflare', name: 'BGE Small · Workers AI (EN)', color: 'cyan' },
   { id: 'tfidf',      name: 'TF-IDF',         color: 'indigo' },
-  { id: 'word2vec',   name: 'Word2Vec',        color: 'blue' },
-  { id: 'glove',      name: 'GloVe',           color: 'cyan' },
-  { id: 'bert',       name: 'BERT',            color: 'emerald' },
-  { id: 'sbert',      name: 'Sentence-BERT',   color: 'amber' },
-  { id: 'openai',     name: 'OpenAI',          color: 'rose' },
-  { id: 'instructor', name: 'Instructor',      color: 'purple' },
 ];
 
 const RETRIEVAL_METHODS = [
   { id: 'auto',       name: 'Auto-Sélection (Agentic)', desc: 'Routage intelligent' },
   { id: 'similarity', name: 'Similarité Brute',  desc: 'Cosine similarity directe' },
   { id: 'bm25',       name: 'BM25',              desc: 'Recherche lexicale' },
-  { id: 'dpr',        name: 'DPR',               desc: 'Dense Passage Retrieval' },
   { id: 'hybrid',     name: 'Hybride',           desc: 'Lexical + Vectoriel' },
-  { id: 'reranking',  name: 'Re-ranking',        desc: 'Cross-encoder re-ranking' },
+  { id: 'reranking',  name: 'Re-ranking',        desc: 'Lexical coverage re-ranking' },
 ];
 
 const CLUSTER_COLORS = ['var(--accent-indigo)', 'var(--accent-emerald)', 'var(--accent-amber)', 'var(--accent-rose)', 'var(--accent-cyan)'];
 
-// Module level cache to persist state across unmounts
-let cachedActiveSection = 'chunking';
-let cachedSelectedChunking = 'auto';
-let cachedSelectedEmbedding = 'auto';
-let cachedSelectedRetrieval = 'auto';
-let cachedChunkResult = null;
-let cachedEmbedResult = null;
-let cachedRetrieveResult = null;
-let cachedRetrieveQuery = '';
-
 export default function VectorialPage() {
   const { t } = useLanguage();
-  const [activeSection, setActiveSection] = useState(cachedActiveSection);
-  const [selectedChunking, setSelectedChunking] = useState(cachedSelectedChunking);
-  const [selectedEmbedding, setSelectedEmbedding] = useState(cachedSelectedEmbedding);
-  const [selectedRetrieval, setSelectedRetrieval] = useState(cachedSelectedRetrieval);
+  const [activeSection, setActiveSection] = useState('chunking');
+  const [selectedChunking, setSelectedChunking] = useState('auto');
+  const [selectedEmbedding, setSelectedEmbedding] = useState('auto');
+  const [selectedRetrieval, setSelectedRetrieval] = useState('auto');
 
   // Data states
-  const [chunkResult, setChunkResult] = useState(cachedChunkResult);
-  const [embedResult, setEmbedResult] = useState(cachedEmbedResult);
-  const [retrieveResult, setRetrieveResult] = useState(cachedRetrieveResult);
-  const [retrieveQuery, setRetrieveQuery] = useState(cachedRetrieveQuery);
+  const [chunkResult, setChunkResult] = useState(null);
+  const [embedResult, setEmbedResult] = useState(null);
+  const [retrieveResult, setRetrieveResult] = useState(null);
+  const [retrieveQuery, setRetrieveQuery] = useState('');
 
-  // Sync state to cache
-  useEffect(() => { cachedActiveSection = activeSection; }, [activeSection]);
-  useEffect(() => { cachedSelectedChunking = selectedChunking; }, [selectedChunking]);
-  useEffect(() => { cachedSelectedEmbedding = selectedEmbedding; }, [selectedEmbedding]);
-  useEffect(() => { cachedSelectedRetrieval = selectedRetrieval; }, [selectedRetrieval]);
-  useEffect(() => { cachedChunkResult = chunkResult; }, [chunkResult]);
-  useEffect(() => { cachedEmbedResult = embedResult; }, [embedResult]);
-  useEffect(() => { cachedRetrieveResult = retrieveResult; }, [retrieveResult]);
-  useEffect(() => { cachedRetrieveQuery = retrieveQuery; }, [retrieveQuery]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
 
@@ -77,7 +51,7 @@ export default function VectorialPage() {
     setLoading(true);
     setStatus('Chunking en cours...');
     try {
-      const res = await vectorialAPI.chunk({ method: selectedChunking, chunk_size: 500, chunk_overlap: 50 });
+      const res = await vectorialAPI.chunk({ method: selectedChunking, chunk_size: 600, chunk_overlap: 50 });
       setChunkResult(res.data);
       setStatus(`✅ ${res.data.count} chunks créés (méthode: ${res.data.method})`);
     } catch (e) {
@@ -311,30 +285,12 @@ export default function VectorialPage() {
                     ));
                   })()
                 ) : (
-                  Array.from({ length: 60 }, (_, i) => {
-                    const cluster = i % 3;
-                    const cx = cluster === 0 ? 30 : cluster === 1 ? 60 : 45;
-                    const cy = cluster === 0 ? 40 : cluster === 1 ? 35 : 70;
-                    return (
-                      <div key={i} className="pca-point"
-                        style={{
-                          left: `${cx + (Math.random() - 0.5) * 25}%`,
-                          top: `${cy + (Math.random() - 0.5) * 20}%`,
-                          background: CLUSTER_COLORS[cluster],
-                          animationDelay: `${i * 20}ms`,
-                        }}
-                      />
-                    );
-                  })
+                  <p className="workspace-detail">Index a document to show its coordinates.</p>
                 )}
-                <div className="pca-axis-x">PC1</div>
-                <div className="pca-axis-y">PC2</div>
+                <div className="pca-axis-x">X</div>
+                <div className="pca-axis-y">Y</div>
               </div>
-              <div className="pca-legend">
-                {CLUSTER_COLORS.map((c, i) => (
-                  <span key={i}><span className="legend-dot" style={{ background: c }} /> Cluster {i + 1}</span>
-                ))}
-              </div>
+              <p className="workspace-detail">{embedResult?.projection}</p>
               {embedResult?.auto_selected && embedResult.profiler && (
                 <div className="auto-select-note" style={{ marginTop: 'var(--space-md)', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid var(--accent-purple)' }}>
                   <span className="badge badge-purple">✨ {t('vec.profiler_active')}</span>

@@ -1,6 +1,11 @@
 # IDEs and Editors
 .idea/
 .vscode/
+node_modules/
+frontend/dist/
+.wrangler/
+.dev.vars
+test-results/
 
 # Python caches
 __pycache__/

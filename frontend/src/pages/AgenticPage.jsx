@@ -4,7 +4,7 @@ import { agentAPI } from '../services/api';
 import { useLanguage } from '../LanguageContext';
 import './AgenticPage.css';
 
-const ACTIONS = ['use_graph', 'use_vector', 'fallback'];
+const ACTIONS = ['use_graph', 'use_vector_bm25', 'use_vector_similarity', 'use_vector_hybrid', 'use_vector_rerank', 'fallback'];
 
 export default function AgenticPage() {
   const { t } = useLanguage();
@@ -46,7 +46,7 @@ export default function AgenticPage() {
     { label: 'User Query', icon: '💬', color: 'var(--accent-amber)', detail: lastDecision.query },
     { label: 'Semantic Analysis', icon: '🧠', color: 'var(--accent-indigo)', detail: `Score: ${lastDecision.features?.semantic_score}` },
     { label: 'Systematic Analysis', icon: '🔗', color: 'var(--accent-emerald)', detail: `Score: ${lastDecision.features?.systematic_score}` },
-    { label: lastDecision.action === 'use_graph' ? 'Graph RAG' : lastDecision.action === 'use_vector' ? 'Vectorial RAG' : 'Fallback',
+    { label: lastDecision.action === 'use_graph' ? 'Graph RAG' : lastDecision.action?.startsWith('use_vector_') ? 'Vectorial RAG' : 'Fallback',
       icon: lastDecision.action === 'use_graph' ? '🕸️' : '📊',
       color: lastDecision.action === 'use_graph' ? 'var(--accent-emerald)' : 'var(--accent-cyan)',
       detail: `Confiance: ${Math.round((lastDecision.confidence || 0) * 100)}%` },
@@ -81,7 +81,7 @@ export default function AgenticPage() {
                 <tr>
                   <th>{t('agent.state')}</th>
                   <th>{t('agent.graph')}</th>
-                  <th>{t('agent.vector')}</th>
+                  <th>BM25</th><th>Similarity</th><th>Hybrid</th><th>Rerank</th>
                   <th>{t('agent.fallback')}</th>
                   <th>{t('agent.best')}</th>
                 </tr>
@@ -91,13 +91,13 @@ export default function AgenticPage() {
                   <tr key={i}>
                     <td className="state-cell">{row.state?.replace(/\+/g, ' | ')?.slice(0, 30)}</td>
                     <td><span className={`q-val ${row.use_graph > 0.3 ? 'high' : ''}`}>{row.use_graph?.toFixed(3)}</span></td>
-                    <td><span className={`q-val ${row.use_vector > 0.3 ? 'high' : ''}`}>{row.use_vector?.toFixed(3)}</span></td>
+                    {ACTIONS.slice(1, 5).map(action => <td key={action}><span className={`q-val ${row[action] > 0.3 ? 'high' : ''}`}>{row[action]?.toFixed(3)}</span></td>)}
                     <td><span className={`q-val ${row.fallback > 0.3 ? 'high' : ''}`}>{row.fallback?.toFixed(3)}</span></td>
                     <td><span className="badge badge-emerald">{row.best_action}</span></td>
                   </tr>
                 ))}
                 {qTable.length === 0 && (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <tr><td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                     {t('agent.empty_q')}
                   </td></tr>
                 )}
@@ -178,9 +178,9 @@ export default function AgenticPage() {
             <h3>{t('agent.graph_query')}</h3>
           </div>
           <div className="cypher-box">
-            <code>MATCH (a)-[r]-&gt;(b) WHERE a.name = $query RETURN a, r, b LIMIT 10</code>
+            <code>Query concepts → co-occurring concepts → matching document passages</code>
           </div>
-          <div className="mini-graph">
+          <div className="mini-graph" aria-label="Illustrative routing diagram, not live graph data">
             <svg viewBox="0 0 200 120">
               {[[50,60,100,30],[100,30,150,70],[50,60,150,70],[100,30,170,100],[50,60,30,100]].map(([x1,y1,x2,y2], i) => (
                 <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(129,140,248,0.3)" strokeWidth="1"/>
@@ -212,7 +212,7 @@ export default function AgenticPage() {
             </div>
             <div className="feedback-item">
               <span className="feedback-label">Exploration (ε)</span>
-              <span className="metric-value" style={{ fontSize: '1.1rem' }}>{policy?.params?.epsilon || 0.2}</span>
+              <span className="metric-value" style={{ fontSize: '1.1rem' }}>{policy?.params?.epsilon ?? 0}</span>
             </div>
           </div>
         </div>

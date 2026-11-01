@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HiOutlinePaperAirplane, HiOutlineRefresh, HiOutlineClock } from 'react-icons/hi';
 import { queryAPI } from '../services/api';
 import { useLanguage } from '../LanguageContext';
@@ -11,12 +11,17 @@ export default function QueryPage() {
   const [fullResult, setFullResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    queryAPI.history().then(res => setHistory(res.data.queries.map(row => ({ ...row, confidence: Math.round(row.confidence * 100) })))).catch(err => setError(err.response?.data?.detail || err.message));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     setLoading(true);
     setFullResult(null);
+    setError('');
 
     try {
       // Step 1: Analyze
@@ -26,6 +31,7 @@ export default function QueryPage() {
       // Step 2: Execute
       const execRes = await queryAPI.execute({ query });
       setFullResult(execRes.data);
+      setAnalysis(execRes.data);
 
       // Update history
       setHistory(prev => [{
@@ -35,7 +41,7 @@ export default function QueryPage() {
         confidence: Math.round((execRes.data.confidence || analyzeRes.data.confidence) * 100),
       }, ...prev].slice(0, 10));
     } catch (err) {
-      console.error('Query failed:', err);
+      setError(err.response?.data?.detail || err.message);
       setAnalysis({
         query,
         type: 'Error',
@@ -50,6 +56,7 @@ export default function QueryPage() {
     setQuery('');
     setAnalysis(null);
     setFullResult(null);
+    setError('');
   };
 
   const confPercent = analysis
@@ -64,6 +71,7 @@ export default function QueryPage() {
       </div>
 
       <div className="query-layout">
+        {error && <p className="glass-card" role="alert">{error}</p>}
         {/* ── Left: Input + Analysis ───────────────────────────── */}
         <div className="query-main">
           <div className="glass-card query-input-card">
@@ -151,7 +159,7 @@ export default function QueryPage() {
                   <div className="glass-card" style={{ marginTop: 'var(--space-md)' }}>
                     <div className="glass-card-header">
                       <div className="card-icon emerald">📝</div>
-                      <h3>{t('query.retrieved_summary')}</h3>
+                      <h3>{t('query.retrieved_summary')} · {fullResult.generation_mode === 'workers_ai' ? 'Workers AI' : 'Source excerpts'}</h3>
                     </div>
                     <div className="summary-box">
                       <p>{fullResult.answer}</p>

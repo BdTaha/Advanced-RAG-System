@@ -104,3 +104,11 @@
   font-size: 2.5rem;
   opacity: 0.3;
 }
+.workspace { margin-bottom: 24px; }
+.workspace-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.workspace-row > div:first-child { flex: 1 1 220px; }
+.workspace-detail { color: var(--text-secondary); font-size: 0.78rem; line-height: 1.6; margin-top: 8px; }
+.workspace-editor { display: grid; gap: 12px; margin-top: 12px; }
+.workspace-editor textarea { width: 100%; box-sizing: border-box; }
+.workspace .disabled { opacity: 0.5; cursor: wait; }
+@media (max-width: 700px) { .header-inner { flex-wrap: wrap; } .tab-nav { max-width: 100%; overflow-x: auto; order: 3; } .main-content { padding: 16px; } }

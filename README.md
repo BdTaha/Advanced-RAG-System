@@ -1,6 +1,99 @@
 
 # 🧠 Agentic-Vectorial-Graph RAG Platform
 
+## Public Cloudflare edition
+
+**Live app: https://advanced-rag-system.tahabd.workers.dev**
+
+The public edition runs entirely on **Cloudflare Workers Free + D1 + Workers AI**.
+It requires no visitor login, API key, local Python process, or Neo4j account.
+The original Python research backend is retained in `backend/`; the older
+architecture, model lists and evaluation claims below describe that backend,
+not the public Cloudflare edition.
+
+### Supported public features
+
+- Ready-to-query demonstration document for new visitors.
+- UTF-8 TXT/Markdown upload or pasted text, up to 24,000 characters / 100 KB.
+- Six bounded chunking methods, TF-IDF embeddings with a shared query/document
+  vocabulary, and optional English BGE Small embeddings through Workers AI.
+- Cosine similarity, BM25, hybrid retrieval, and lexical coverage reranking.
+- Source-cited answers through Workers AI; clearly labeled exact source excerpts
+  when generation is unavailable. Retrieval scores are heuristic, not calibrated
+  confidence or correctness probabilities.
+- Concept co-occurrence graphs, weighted label propagation communities, degree,
+  betweenness, closeness and PageRank analytics, and four read-only graph presets.
+  This is not LLM relation extraction, Louvain, or a full Cypher/Neo4j engine.
+- Eight-state, six-action routing policy with persisted Q-values, heuristic
+  rewards, decision history and query history. These rewards are not human feedback.
+- Private anonymous browser workspaces, stored in D1 and identified by an
+  unguessable HttpOnly/Secure/SameSite cookie. Data is not shared between visitors.
+  Workspaces expire after 30 days without saved changes. Clearing cookies loses
+  access; the workspace delete button erases its document, index, graph and history.
+
+Documents are stored on Cloudflare. Retrieved passages are transmitted to Workers
+AI for generation; selecting BGE also sends document chunks to Workers AI.
+The hosted edition therefore does **not** have the original backend's local-only
+privacy properties. PDF and proprietary/local embedding models are not supported
+by this edition. Embedding charts show two coordinates, not PCA or learned clusters.
+
+### Free-plan limits
+
+Cloudflare's free plan has finite daily request, database and AI allowances.
+The app limits documents to 64 chunks, graphs to 40 concepts, queries to 1,000
+characters, and API traffic to 90 requests per IP per minute. AI generation has
+an additional application cap of 50 shared calls per UTC day and 12 per workspace;
+embedding operations have a shared cap of 100 per day. Provider limits can be
+reached sooner. Generation falls back to excerpts; unavailable neural embeddings
+fall back to lexical/TF-IDF retrieval, or ask the visitor to select TF-IDF when
+indexing. Worker or D1 quota exhaustion can temporarily prevent API use.
+Unlimited public availability is not possible on a free plan. No paid plan was
+enabled by this deployment. Keep the account on Workers Free to avoid usage billing.
+
+### Develop and deploy
+
+Use Node.js 22.18+ and npm. From the repository root:
+
+```sh
+npm ci
+npm --prefix frontend ci
+npm run build
+npm run db:local
+npm run dev
+```
+
+Open the local URL printed by Wrangler. For frontend hot reload, keep Wrangler
+running and run `npm --prefix frontend run dev`; Vite proxies `/api` to port 8787.
+Local AI generation is optional; without a remote AI binding, source-excerpt
+fallback works. Do not add visitor API keys or Cloudflare secrets to frontend code.
+
+For a new Cloudflare account, run `npx wrangler login`, create a D1 database with
+`npx wrangler d1 create advanced-rag-db`, and replace its ID in `wrangler.jsonc`.
+Then:
+
+```sh
+npm run db:remote
+npm run deploy
+```
+
+`wrangler.jsonc` declares the frontend static assets, API Worker, D1 database,
+AI binding and daily expired-workspace cleanup. Deployment uses `workers.dev`;
+no custom domain or additional hosting service is required. GitHub CI runs tests
+and a production build; deployment is manual through Wrangler and requires your
+Cloudflare authentication. CI does not contain a deployment token.
+
+### Validation
+
+`npm test` runs algorithm tests and API integration tests in Cloudflare Miniflare
+with a real local D1 binding. Tests cover uploads, chunking, indexing, retrieval,
+visitor isolation, persistent history, graph analytics, supported graph queries,
+workspace erasure, invalid inputs, cross-origin rejection and no-AI fallback.
+`npm --prefix frontend audit --omit=dev` checks shipped frontend dependencies.
+
+---
+
+## Original Python research backend
+
 > A production-grade, privacy-first Retrieval-Augmented Generation system integrating Semantic Vector Search, Knowledge Graph Traversal, and a Q-Learning Routing Agent for intelligent, adaptive query orchestration.
 
 ![Status](https://img.shields.io/badge/Status-Active_Development-success)

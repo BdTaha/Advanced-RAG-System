@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "advanced-rag-system",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-08-06",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./frontend/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health"]
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "advanced-rag-db",
+    "database_id": "3316b77a-3346-49c1-96c9-be2b54c7310a",
+    "migrations_dir": "migrations"
+  }],
+  "ai": { "binding": "AI" },
+  "triggers": { "crons": ["0 3 * * *"] }
+}
